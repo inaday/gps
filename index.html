@@ -7,7 +7,7 @@
   <script>
     $(document).ready(function() {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(savePosition, showError);
+        navigator.geolocation.getCurrentPosition(savePosition, showError, {enableHighAccuracy: true, timeout: 10000});
       } else {
         $("#status").html("该浏览器不支持定位功能。");
       }
@@ -58,7 +58,6 @@
 </head>
 <body>
 
-
   <h1>自动获取GPS地址和IP地址并保存到txt文件中</h1>
   <p>页面已打开，正在获取位置信息和IP地址……</p>
   <p id="status"></p>
@@ -75,4 +74,3 @@
 
 </body>
 </html>
- 
