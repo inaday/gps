@@ -39,27 +39,61 @@
       });
     });
 
-    function savePosition(position) {
-      var latitude = position.coords.latitude;
+
+    function convertAndSavePosition(position) {
       var longitude = position.coords.longitude;
+      var latitude = position.coords.latitude;
 
-      // 显示位置信息
-      $("#latitude").text(latitude);
-      $("#longitude").text(longitude);
-      $("#status").text("获取位置信息成功。");
-
-      // 使用高德地图API将经纬度转换为地址信息
-      var url = "https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude;
+      // 发送 GPS 坐标系到 GCJ-02 坐标系的转换请求
+      var url = "https://restapi.amap.com/v3/assistant/coordinate/convert?locations=" + longitude + "," + latitude + "&coordsys=gps&key=c201351dc0d51a0875735a437be547f4";
       $.get(url, function(response) {
-        if (response.status == 1) {
-          var address = response.regeocode.formatted_address;
-          $("#address").text(address);
-          $("#status").text("获取位置信息成功。");
+        if (response.status == "1") {
+          // 获取转换后的 GCJ-02 坐标系下的经纬度
+          var gcjLng = parseFloat(response.locations.split(",")[0]);
+          var gcjLat = parseFloat(response.locations.split(",")[1]);
+
+          // 显示经纬度信息
+          $("#latitude").text(gcjLat);
+          $("#longitude").text(gcjLng);
+
+          // 使用高德地图API将经纬度转换为地址信息
+          var url = "https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + gcjLng + "," + gcjLat;
+          $.get(url, function(response) {
+            if (response.status == "1") {
+              var address = response.regeocode.formatted_address;
+              $("#address").text(address);
+              $("#status").text("获取位置信息成功。");
+            } else {
+              $("#status").text("获取位置信息失败。");
+            }
+          });
         } else {
-          $("#status").text("获取位置信息失败。");
+          $("#status").text("转换坐标系失败。");
         }
       });
     }
+    
+//     function savePosition(position) {
+//       var latitude = position.coords.latitude;
+//       var longitude = position.coords.longitude;
+
+//       // 显示位置信息
+//       $("#latitude").text(latitude);
+//       $("#longitude").text(longitude);
+//       $("#status").text("获取位置信息成功。");
+
+//       // 使用高德地图API将经纬度转换为地址信息
+//       var url = "https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude;
+//       $.get(url, function(response) {
+//         if (response.status == 1) {
+//           var address = response.regeocode.formatted_address;
+//           $("#address").text(address);
+//           $("#status").text("获取位置信息成功。");
+//         } else {
+//           $("#status").text("获取位置信息失败。");
+//         }
+//       });
+//     }
 
     function showError(error) {
       switch(error.code) {
