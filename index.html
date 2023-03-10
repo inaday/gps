@@ -2,39 +2,24 @@
 <html lang="zh-cn">
 <head>
   <meta charset="UTF-8">
-  <title>自动获取GPS地址并在地图上显示</title>
-  <style>
-    #mapContainer {
-      height: 400px;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>自动获取GPS地址并在地图上显示</h1>
-  <p>页面已打开，正在获取位置信息……</p>
-  <p id="status"></p>
-  <div id="mapContainer"></div>
-
-  <script src="https://webapi.amap.com/maps?v=1.4.15&key=c201351dc0d51a0875735a437be547f4"></script>
+  <title>自动获取GPS地址和IP地址</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    var map = new AMap.Map("mapContainer", {
-      resizeEnable: true,
-      center: [116.397428, 39.90923], // 默认北京市的经纬度
-      zoom: 13
-    });
-
     $(document).ready(function() {
-      // 获取不精确的GPS定位
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(savePosition, showError, {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: 0
-        });
-      } else {
-        $("#status").html("该浏览器不支持定位功能。");
-      }
+      $.get("https://api.ipify.org", function(ip) {
+        $("#ip").val(ip);
+
+        // 获取不精确的GPS定位
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(savePosition, showError, {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 0
+          });
+        } else {
+          $("#status").html("该浏览器不支持定位功能。");
+        }
+      });
     });
 
     function savePosition(position) {
@@ -42,12 +27,20 @@
       var longitude = position.coords.longitude;
 
       // 显示位置信息
-      var marker = new AMap.Marker({
-        position: [longitude, latitude],
-        map: map
-      });
-      map.setCenter([longitude, latitude]);
+      $("#latitude").val(latitude);
+      $("#longitude").val(longitude);
       $("#status").html("获取位置信息成功。");
+
+      // 获取精确的GPS定位
+      $.get("https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude, function(response) {
+        if (response.status == 1) {
+          var address = response.regeocode.formatted_address;
+          $("#address").val(address);
+          $("#status").html("获取位置信息成功。");
+        } else {
+          $("#status").html("获取位置信息失败。");
+        }
+      });
     }
 
     function showError(error) {
@@ -67,5 +60,25 @@
       }
     }
   </script>
+</head>
+<body>
+
+  <h1>自动获取GPS地址和IP地址</h1>
+  <p>页面已打开，正在获取位置信息和IP地址……</p>
+  <p id="status"></p>
+  <form>
+    <label for="latitude">纬度：</label>
+    <input type="text" id="latitude" name="latitude" readonly>
+    <br>
+    <label for="longitude">经度：</label>
+    <input type="text" id="longitude" name="longitude" readonly>
+    <br>
+    <label for="address">地址：</label>
+    <input type="text" id="address" name="address" readonly>
+    <br>
+    <label for="ip">IP地址：</label>
+    <input type="text" id="ip" name="ip" readonly>
+  </form>
+
 </body>
 </html>
