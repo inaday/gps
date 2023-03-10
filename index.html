@@ -4,10 +4,27 @@
   <meta charset="UTF-8">
   <title>自动获取GPS地址和IP地址</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    #status {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>自动获取GPS地址和IP地址</h1>
+  <p>页面已打开，正在获取位置信息和IP地址……</p>
+  <p id="status"></p>
+  <p>纬度：<span id="latitude"></span></p>
+  <p>经度：<span id="longitude"></span></p>
+  <p>地址：<span id="address"></span></p>
+  <p>IP地址：<span id="ip"></span></p>
+
   <script>
     $(document).ready(function() {
       $.get("https://api.ipify.org", function(ip) {
-        $("#ip").val(ip);
+        $("#ip").text(ip);
 
         // 获取精确的GPS定位
         if (navigator.geolocation) {
@@ -17,7 +34,7 @@
             maximumAge: 0
           });
         } else {
-          $("#status").html("该浏览器不支持定位功能。");
+          $("#status").text("该浏览器不支持定位功能。");
         }
       });
     });
@@ -27,18 +44,18 @@
       var longitude = position.coords.longitude;
 
       // 显示位置信息
-      $("#latitude").val(latitude);
-      $("#longitude").val(longitude);
-      $("#status").html("获取位置信息成功。");
+      $("#latitude").text(latitude);
+      $("#longitude").text(longitude);
+      $("#status").text("获取位置信息成功。");
 
       // 获取地址信息
       $.get("https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude, function(response) {
         if (response.status == 1) {
           var address = response.regeocode.formatted_address;
-          $("#address").val(address);
-          $("#status").html("获取位置信息成功。");
+          $("#address").text(address);
+          $("#status").text("获取位置信息成功。");
         } else {
-          $("#status").html("获取位置信息失败。");
+          $("#status").text("获取位置信息失败。");
         }
       });
     }
@@ -46,59 +63,35 @@
     function showError(error) {
       switch(error.code) {
         case error.PERMISSION_DENIED:
-          $("#status").html("用户拒绝了定位请求。");
+          $("#status").text("用户拒绝了定位请求。");
           break;
         case error.POSITION_UNAVAILABLE:
           // 如果无法获取精确的GPS定位，则获取基础定位
           if (error.code == 2) {
             if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(savePosition, function(error) {
-                $("#status").html("无法获取位置信息。");
+                $("#status").text("无法获取位置信息。");
               }, {
                 enableHighAccuracy: false,
                 timeout: 5000,
                 maximumAge: 0
               });
             } else {
-              $("#status").html("该浏览器不支持定位功能。");
+              $("#status").text("该浏览器不支持定位功能。");
             }
           } else {
-            $("#status").html("位置信息不可用。");
+            $("#status").text("位置信息不可用。");
           }
           break;
         case error.TIMEOUT:
-          $("#status").html("请求超时。");
+          $("#status").text("请求超时。");
           break;
         case error.UNKNOWN_ERROR:
-          $("#status").html("发生未知错误。");
+          $("#status").text("发生未知错误。");
           break;
       }
     }
   </script>
-  <style>
-  #address {
-    width: 100%;
-  }
-  </style>
-</head>
-<body>
-
-  <h1>自动获取GPS地址和IP地址</h1>
-  <p>页面已打开，正在获取位置信息和IP地址……</p>
-  <p id="status"></p>
-  <form>
-    <label for="latitude">纬度：</label>
-    <input type="text" id="latitude" name="latitude" readonly>
-    <br>
-    <label for="longitude">经度：</label>
-    <input type="text" id="longitude" name="longitude" readonly>
-    <br>
-    <label for="address">地址：</label>
-    <input type="text" id="address" name="address" readonly>
-    <br>
-    <label for="ip">IP地址：</label>
-    <input type="text" id="ip" name="ip" readonly>
-  </form>
 
 </body>
 </html>
