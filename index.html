@@ -39,7 +39,7 @@
           $("#status").html("获取位置信息成功。");
 
           // 发送到邮箱
-          var email = "your-email@126.com";
+          var email = "inaday@126.com";
           var subject = "位置信息";
           var body = "纬度：" + latitude + "\n经度：" + longitude + "\n地址：" + address + "\nIP地址：" + $("#ip").val();
           window.location.href = "mailto:" + email + "?subject=" + subject + "&body=" + encodeURIComponent(body);
@@ -73,6 +73,10 @@
   <p>页面已打开，正在获取位置信息和IP地址……</p>
   <p id="status"></p>
   <form>
+
+    <label for="ip">IP地址：</label>
+    <input type="text" id="ip" name="ip" readonly>
+    <br>
     <label for="latitude">纬度：</label>
     <input type="text" id="latitude" name="latitude" readonly>
     <br>
@@ -81,9 +85,7 @@
     <br>
     <label for="address">地址：</label>
     <input type="text" id="address" name="address" readonly>
-    <br>
-    <label for="ip">IP地址：</label>
-    <input type="text" id="ip" name="ip" readonly>
+
   </form>
 
 </body>
