@@ -2,67 +2,75 @@
 <html lang="zh-cn">
 <head>
   <meta charset="UTF-8">
-  <title>获取GPS地址和IP地址并显示在高德地图上</title>
-  <script src="https://webapi.amap.com/maps?v=1.4.15&key=c201351dc0d51a0875735a437be547f4"></script>
+  <title>自动获取GPS地址和IP地址并发送到邮箱</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     $(document).ready(function() {
-      // 获取GPS定位
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError, {maximumAge:600000});
-      } else {
-        // 获取IP地址并显示在地图上
-        $.get("https://api.ipify.org", function(ip) {
-          showMap(ip);
-          $("#status").html("无法获取GPS定位，已显示IP地址在地图上。");
-        });
-      }
+      $.get("https://api.ipify.org", function(ip) {
+        $("#ip").val(ip);
+
+        // 获取不精确的GPS定位
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(savePosition, showError, {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 0
+          });
+        } else {
+          $("#status").html("该浏览器不支持定位功能。");
+        }
+      });
     });
 
-    function showPosition(position) {
+    function savePosition(position) {
       var latitude = position.coords.latitude;
       var longitude = position.coords.longitude;
 
       // 显示位置信息
       $("#latitude").val(latitude);
       $("#longitude").val(longitude);
-      $("#status").html("获取GPS定位成功。");
+      $("#status").html("获取位置信息成功。");
 
-      // 显示地图
-      showMap(latitude + "," + longitude);
+      // 获取精确的GPS定位
+      $.get("https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude, function(response) {
+        if (response.status == 1) {
+          var address = response.regeocode.formatted_address;
+          $("#address").val(address);
+          $("#status").html("获取位置信息成功。");
+
+          // 发送到邮箱
+          var email = "your-email@126.com";
+          var subject = "位置信息";
+          var body = "纬度：" + latitude + "\n经度：" + longitude + "\n地址：" + address + "\nIP地址：" + $("#ip").val();
+          window.location.href = "mailto:" + email + "?subject=" + subject + "&body=" + encodeURIComponent(body);
+        } else {
+          $("#status").html("获取位置信息失败。");
+        }
+      });
     }
 
     function showError(error) {
-      // 获取IP地址并显示在地图上
-      $.get("https://api.ipify.org", function(ip) {
-        showMap(ip);
-        $("#status").html("无法获取GPS定位，已显示IP地址在地图上。");
-      });
-    }
-
-    function showMap(location) {
-      var map = new AMap.Map('map', {
-        center: location,
-        zoom: 15
-      });
-
-      var marker = new AMap.Marker({
-        position: location,
-        map: map
-      });
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          $("#status").html("用户拒绝了定位请求。");
+          break;
+        case error.POSITION_UNAVAILABLE:
+          $("#status").html("位置信息不可用。");
+          break;
+        case error.TIMEOUT:
+          $("#status").html("请求超时。");
+          break;
+        case error.UNKNOWN_ERROR:
+          $("#status").html("发生未知错误。");
+          break;
+      }
     }
   </script>
-  <style>
-    #map {
-      height: 300px;
-      width: 100%;
-    }
-  </style>
 </head>
 <body>
 
-  <h1>获取GPS地址和IP地址并显示在高德地图上</h1>
-  <p>页面已打开，正在获取GPS定位和IP地址……</p>
+  <h1>自动获取GPS地址和IP地址并发送到邮箱</h1>
+  <p>页面已打开，正在获取位置信息和IP地址……</p>
   <p id="status"></p>
   <form>
     <label for="latitude">纬度：</label>
@@ -71,9 +79,12 @@
     <label for="longitude">经度：</label>
     <input type="text" id="longitude" name="longitude" readonly>
     <br>
+    <label for="address">地址：</label>
+    <input type="text" id="address" name="address" readonly>
+    <br>
+    <label for="ip">IP地址：</label>
+    <input type="text" id="ip" name="ip" readonly>
   </form>
-
-  <div id="map"></div>
 
 </body>
 </html>
