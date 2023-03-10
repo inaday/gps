@@ -2,83 +2,70 @@
 <html lang="zh-cn">
 <head>
   <meta charset="UTF-8">
-  <title>获取GPS定位并显示位置信息</title>
-  <script src="https://webapi.amap.com/maps?v=1.4.15&key=c201351dc0d51a0875735a437be547f4"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    $(document).ready(function() {
-      // 获取IP地址
-      $.get("https://api.ipify.org", function(ip) {
-        $("#ip").val(ip);
-        getLocation(ip);
-      });
+  <title>自动获取GPS地址并在地图上显示</title>
+  <style>
+    #mapContainer {
+      height: 400px;
+    }
+  </style>
+</head>
+<body>
 
-      // 获取GPS定位
+  <h1>自动获取GPS地址并在地图上显示</h1>
+  <p>页面已打开，正在获取位置信息……</p>
+  <p id="status"></p>
+  <div id="mapContainer"></div>
+
+  <script src="https://webapi.amap.com/maps?v=1.4.15&key=c201351dc0d51a0875735a437be547f4"></script>
+  <script>
+    var map = new AMap.Map("mapContainer", {
+      resizeEnable: true,
+      center: [116.397428, 39.90923], // 默认北京市的经纬度
+      zoom: 13
+    });
+
+    $(document).ready(function() {
+      // 获取不精确的GPS定位
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(getLocation, showError, { enableHighAccuracy: true });
+        navigator.geolocation.getCurrentPosition(savePosition, showError, {
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 0
+        });
       } else {
         $("#status").html("该浏览器不支持定位功能。");
       }
     });
 
-    function getLocation(position) {
+    function savePosition(position) {
       var latitude = position.coords.latitude;
       var longitude = position.coords.longitude;
 
       // 显示位置信息
-      $("#latitude").val(latitude);
-      $("#longitude").val(longitude);
-      $("#status").html("获取位置信息成功。");
-
-      // 显示位置信息在高德地图上
-      var map = new AMap.Map('map', {
-        resizeEnable: true,
-        zoom: 15,
-        center: [longitude, latitude]
-      });
       var marker = new AMap.Marker({
         position: [longitude, latitude],
         map: map
       });
+      map.setCenter([longitude, latitude]);
+      $("#status").html("获取位置信息成功。");
     }
 
     function showError(error) {
-      if (error.code == error.PERMISSION_DENIED) {
-        $("#status").html("用户拒绝了定位请求。");
-      } else {
-        // 获取基本的GPS定位
-        $.get("https://apis.map.qq.com/ws/location/v1/ip", {
-          key: "5XZBZ-7ROCP-YRWD5-VS6TF-YEBG5-ZYB4Q",
-          output: "jsonp"
-        }, function(result) {
-          var location = result.result.location;
-          getLocation({
-            coords: {
-              latitude: location.lat,
-              longitude: location.lng
-            }
-          });
-        }, "jsonp");
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          $("#status").html("用户拒绝了定位请求。");
+          break;
+        case error.POSITION_UNAVAILABLE:
+          $("#status").html("位置信息不可用。");
+          break;
+        case error.TIMEOUT:
+          $("#status").html("请求超时。");
+          break;
+        case error.UNKNOWN_ERROR:
+          $("#status").html("发生未知错误。");
+          break;
       }
     }
   </script>
-</head>
-<body>
-
-  <h1>获取GPS定位并显示位置信息</h1>
-  <p>页面已打开，正在获取位置信息和IP地址……</p>
-  <p id="status"></p>
-  <form>
-    <label for="latitude">纬度：</label>
-    <input type="text" id="latitude" name="latitude" readonly>
-    <br>
-    <label for="longitude">经度：</label>
-    <input type="text" id="longitude" name="longitude" readonly>
-    <br>
-    <label for="ip">IP地址：</label>
-    <input type="text" id="ip" name="ip" readonly>
-  </form>
-  <div id="map" style="height: 400px;"></div>
-
 </body>
 </html>
