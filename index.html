@@ -26,7 +26,7 @@
       $.get("https://api.ipify.org", function(ip) {
         $("#ip").text(ip);
 
-        // 获取精确的GPS定位
+        // 获取GPS定位
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(savePosition, showError, {
             enableHighAccuracy: true,
@@ -48,8 +48,9 @@
       $("#longitude").text(longitude);
       $("#status").text("获取位置信息成功。");
 
-      // 获取地址信息
-      $.get("https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude, function(response) {
+      // 使用高德地图API将经纬度转换为地址信息
+      var url = "https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude;
+      $.get(url, function(response) {
         if (response.status == 1) {
           var address = response.regeocode.formatted_address;
           $("#address").text(address);
@@ -66,22 +67,7 @@
           $("#status").text("用户拒绝了定位请求。");
           break;
         case error.POSITION_UNAVAILABLE:
-          // 如果无法获取精确的GPS定位，则获取基础定位
-          if (error.code == 2) {
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(savePosition, function(error) {
-                $("#status").text("无法获取位置信息。");
-              }, {
-                enableHighAccuracy: false,
-                timeout: 5000,
-                maximumAge: 0
-              });
-            } else {
-              $("#status").text("该浏览器不支持定位功能。");
-            }
-          } else {
-            $("#status").text("位置信息不可用。");
-          }
+          $("#status").text("位置信息不可用。");
           break;
         case error.TIMEOUT:
           $("#status").text("请求超时。");
