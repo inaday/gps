@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <title>自动获取GPS地址和IP地址并保存到txt文件中</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(savePosition, showError);
+      } else {
+        $("#status").html("该浏览器不支持定位功能。");
+      }
+    });
+
+    function savePosition(position) {
+      var latitude = position.coords.latitude;
+      var longitude = position.coords.longitude;
+
+      // 显示位置信息
+      $("#latitude").val(latitude);
+      $("#longitude").val(longitude);
+      $("#status").html("获取位置信息成功。");
+
+      // 获取IP地址
+      $.get("https://api.ipify.org", function(ip) {
+        $("#ip").val(ip);
+
+        // 保存位置信息和IP地址到txt文件
+        var data = "Latitude: " + latitude + "\nLongitude: " + longitude + "\nIP: " + ip;
+        $.post("save.php", {data: data}, function(response) {
+          if (response == "success") {
+            $("#status").html("位置信息和IP地址已保存到文件location.txt中。");
+          } else {
+            $("#status").html("保存文件失败。");
+          }
+        });
+      });
+    }
+
+    function showError(error) {
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          $("#status").html("用户拒绝了定位请求。");
+          break;
+        case error.POSITION_UNAVAILABLE:
+          $("#status").html("位置信息不可用。");
+          break;
+        case error.TIMEOUT:
+          $("#status").html("请求超时。");
+          break;
+        case error.UNKNOWN_ERROR:
+          $("#status").html("发生未知错误。");
+          break;
+      }
+    }
+  </script>
+</head>
+<body>
+
+
+  <h1>自动获取GPS地址和IP地址并保存到txt文件中</h1>
+  <p>页面已打开，正在获取位置信息和IP地址……</p>
+  <p id="status"></p>
+  <form>
+    <label for="latitude">纬度：</label>
+    <input type="text" id="latitude" name="latitude" readonly>
+    <br>
+    <label for="longitude">经度：</label>
+    <input type="text" id="longitude" name="longitude" readonly>
+    <br>
+    <label for="ip">IP地址：</label>
+    <input type="text" id="ip" name="ip" readonly>
+  </form>
+
+  
+</body>
+</html>
+ 
