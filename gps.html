@@ -2,62 +2,26 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>获取GPS定位示例</title>
-    <script src="https://webapi.amap.com/maps?v=1.4.15&key=929af1113cb64488bd57879e85a9c840"></script>
+    <title>自动获取GPS定位示例</title>
   </head>
   <body onload="getLocation()">
-    <h1>获取GPS定位示例</h1>
+    <h1>自动获取GPS定位示例</h1>
     <p>您的位置为：</p>
     <p id="location"></p>
 
     <script>
       function getLocation() {
         if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(getAddress, handleError, { enableHighAccuracy: true });
+          navigator.geolocation.getCurrentPosition(showPosition);
         } else {
           document.getElementById("location").innerHTML = "该浏览器不支持获取位置信息。";
         }
       }
 
-      function getAddress(position) {
+      function showPosition(position) {
         var latitude = position.coords.latitude;
         var longitude = position.coords.longitude;
-        AMap.convertFrom([longitude, latitude], 'gps', function(status, result) {
-          if (result.info === 'ok') {
-            var lnglat = result.locations[0];
-            var geocoder = new AMap.Geocoder({
-              radius: 1000,
-              extensions: "all"
-            });
-            geocoder.getAddress(lnglat, function(status, result) {
-              if (status === 'complete' && result.regeocode) {
-                var address = result.regeocode.formattedAddress;
-                document.getElementById("location").innerHTML = "WGS84经纬度：(" + longitude + ", " + latitude + ")<br>高德地图经纬度：(" + lnglat.lng + ", " + lnglat.lat + ")<br>地址：" + address;
-              } else {
-                document.getElementById("location").innerHTML = "获取地址信息失败，请检查您的网络连接。";
-              }
-            });
-          } else {
-            document.getElementById("location").innerHTML = "转换失败，请检查您的网络连接。";
-          }
-        });
-      }
-
-      function handleError(error) {
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            document.getElementById("location").innerHTML = "用户拒绝了定位请求。";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            document.getElementById("location").innerHTML = "位置信息不可用。";
-            break;
-          case error.TIMEOUT:
-            document.getElementById("location").innerHTML = "获取位置信息超时。";
-            break;
-          default:
-            document.getElementById("location").innerHTML = "发生了未知错误。";
-            break;
-        }
+        document.getElementById("location").innerHTML = "纬度：" + latitude + "<br>经度：" + longitude;
       }
     </script>
   </body>
