@@ -21,45 +21,45 @@
   <p>地址：<span id="address"></span></p>
   <p>IP地址：<span id="ip"></span></p>
 
-  <script>
-    $(document).ready(function() {
-      $.get("https://api.ipify.org", function(ip) {
-        $("#ip").text(ip);
+<script>
+$(document).ready(function() {
+  $.get("https://api.ipify.org", function(ip) {
+    $("#ip").text(ip);
 
-        // 获取GPS定位
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(savePosition, showError, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-          });
-        } else {
-          $("#status").text("该浏览器不支持定位功能。");
-        }
+    // 获取GPS定位
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(savePosition, showError, {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
       });
-    });
+    } else {
+      $("#status").text("该浏览器不支持定位功能。");
+    }
+  });
+});
 
-
-    function convertAndSavePosition(position) {
+    function savePosition(position) {
       var longitude = position.coords.longitude;
       var latitude = position.coords.latitude;
 
-      // 发送 GPS 坐标系到 GCJ-02 坐标系的转换请求
+      // 将 GPS 坐标系转换为 GCJ-02 坐标系
       var url = "https://restapi.amap.com/v3/assistant/coordinate/convert?locations=" + longitude + "," + latitude + "&coordsys=gps&key=c201351dc0d51a0875735a437be547f4";
       $.get(url, function(response) {
         if (response.status == "1") {
-          // 获取转换后的 GCJ-02 坐标系下的经纬度
+          // 获取转换后的坐标
           var gcjLng = parseFloat(response.locations.split(",")[0]);
           var gcjLat = parseFloat(response.locations.split(",")[1]);
 
-          // 显示经纬度信息
+          // 显示位置信息和转换后的坐标
           $("#latitude").text(gcjLat);
           $("#longitude").text(gcjLng);
+          $("#status").text("获取位置信息成功。");
 
           // 使用高德地图API将经纬度转换为地址信息
           var url = "https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + gcjLng + "," + gcjLat;
           $.get(url, function(response) {
-            if (response.status == "1") {
+            if (response.status == 1) {
               var address = response.regeocode.formatted_address;
               $("#address").text(address);
               $("#status").text("获取位置信息成功。");
@@ -68,50 +68,29 @@
             }
           });
         } else {
-          $("#status").text("转换坐标系失败。");
+          $("#status").text("GPS坐标系转换失败。");
         }
       });
     }
-    
-//     function savePosition(position) {
-//       var latitude = position.coords.latitude;
-//       var longitude = position.coords.longitude;
 
-//       // 显示位置信息
-//       $("#latitude").text(latitude);
-//       $("#longitude").text(longitude);
-//       $("#status").text("获取位置信息成功。");
+function showError(error) {
+  switch(error.code) {
+    case error.PERMISSION_DENIED:
+      $("#status").text("用户拒绝了定位请求。");
+      break;
+    case error.POSITION_UNAVAILABLE:
+      $("#status").text("位置信息不可用。");
+      break;
+    case error.TIMEOUT:
+      $("#status").text("请求超时。");
+      break;
+    case error.UNKNOWN_ERROR:
+      $("#status").text("发生未知错误。");
+      break;
+  }
+}
+</script>
 
-//       // 使用高德地图API将经纬度转换为地址信息
-//       var url = "https://restapi.amap.com/v3/geocode/regeo?key=c201351dc0d51a0875735a437be547f4&location=" + longitude + "," + latitude;
-//       $.get(url, function(response) {
-//         if (response.status == 1) {
-//           var address = response.regeocode.formatted_address;
-//           $("#address").text(address);
-//           $("#status").text("获取位置信息成功。");
-//         } else {
-//           $("#status").text("获取位置信息失败。");
-//         }
-//       });
-//     }
-
-    function showError(error) {
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          $("#status").text("用户拒绝了定位请求。");
-          break;
-        case error.POSITION_UNAVAILABLE:
-          $("#status").text("位置信息不可用。");
-          break;
-        case error.TIMEOUT:
-          $("#status").text("请求超时。");
-          break;
-        case error.UNKNOWN_ERROR:
-          $("#status").text("发生未知错误。");
-          break;
-      }
-    }
-  </script>
 
 </body>
 </html>
