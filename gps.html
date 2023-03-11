@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>自动获取GPS定位示例</title>
-  </head>
-  <body onload="getLocation()">
-    <h1>自动获取GPS定位示例</h1>
-    <p>您的位置为：</p>
-    <p id="location"></p>
-
-    <script>
-      function getLocation() {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(showPosition);
-        } else {
-          document.getElementById("location").innerHTML = "该浏览器不支持获取位置信息。";
-        }
-      }
-
-      function showPosition(position) {
-        var latitude = position.coords.latitude;
-        var longitude = position.coords.longitude;
-        document.getElementById("location").innerHTML = "纬度：" + latitude + "<br>经度：" + longitude;
-      }
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <title>获取用户位置信息</title>
+</head>
+<body>
+  <h1>获取用户位置信息</h1>
+  <p>Latitude: <span id="latitude"></span></p>
+  <p>Longitude: <span id="longitude"></span></p>
+  <script>
+    // 获取位置信息
+    navigator.geolocation.getCurrentPosition(function(position) {
+      // 获取经度和纬度
+      var latitude = position.coords.latitude;
+      var longitude = position.coords.longitude;
+      // 更新页面上的经度和纬度
+      document.getElementById("latitude").innerHTML = latitude;
+      document.getElementById("longitude").innerHTML = longitude;
+    }, function(error) {
+      console.log(error);
+    }, {
+      enableHighAccuracy: false, // 不使用GPS
+      timeout: 5000, // 超时时间
+      maximumAge: 0 // 不使用缓存
+    });
+  </script>
+</body>
 </html>
