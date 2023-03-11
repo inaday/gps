@@ -2,18 +2,18 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>将经纬度转换为地址示例</title>
-    <script src="https://webapi.amap.com/maps?v=1.4.15&key=c201351dc0d51a0875735a437be547f4"></script>
+    <title>获取GPS定位示例</title>
+    <script src="https://webapi.amap.com/maps?v=1.4.15&key=您的高德地图API Key"></script>
   </head>
   <body onload="getLocation()">
-    <h1>将经纬度转换为地址示例</h1>
+    <h1>获取GPS定位示例</h1>
     <p>您的位置为：</p>
     <p id="location"></p>
 
     <script>
       function getLocation() {
         if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(getAddress);
+          navigator.geolocation.getCurrentPosition(getAddress, handleError, { enableHighAccuracy: true });
         } else {
           document.getElementById("location").innerHTML = "该浏览器不支持获取位置信息。";
         }
@@ -41,6 +41,23 @@
             document.getElementById("location").innerHTML = "转换失败，请检查您的网络连接。";
           }
         });
+      }
+
+      function handleError(error) {
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            document.getElementById("location").innerHTML = "用户拒绝了定位请求。";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            document.getElementById("location").innerHTML = "位置信息不可用。";
+            break;
+          case error.TIMEOUT:
+            document.getElementById("location").innerHTML = "获取位置信息超时。";
+            break;
+          default:
+            document.getElementById("location").innerHTML = "发生了未知错误。";
+            break;
+        }
       }
     </script>
   </body>
